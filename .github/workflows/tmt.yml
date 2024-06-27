@@ -5,6 +5,7 @@ on:
       - created
 permissions:
   contents: read
+
 # The concurrency key is used to prevent multiple workflows from running at the same time
 concurrency:
   group: my-concurrency-group
@@ -29,8 +30,6 @@ jobs:
       - name: Checkout tests repo
         uses: action/checkout@v4
         with:
-          # repository: linux-system-roles/tft-tests
-          # ref: main
           repository: spetrosi/tft-tests
           ref: add-tmt-tests
           fetch-depth: 0
