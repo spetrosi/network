@@ -3,6 +3,8 @@ on:
   issue_comment:
     types:
       - created
+permissions:
+  contents: read
 # The concurrency key is used to prevent multiple workflows from running at the same time
 concurrency:
   group: my-concurrency-group
@@ -13,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch: ${{ steps.create_test_plans.outputs.branch }}
+    if: |
+      github.event.issue.pull_request
+      && (contains(github.event.comment.body, '[test]') || contains(github.event.comment.body, '[test-all]'))
+      && contains(fromJson('["OWNER", "MEMBER"]'), github.event.comment.author_association)
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
