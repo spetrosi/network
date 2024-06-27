@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: "refs/pull/${{ github.event.issue.number }}/head"
-          path: ${{ github.action_repository }}
+          path: ${{ github.event.repository.name }}
 
       - name: Checkout tests repo
         uses: actions/checkout@v4
@@ -34,14 +34,15 @@ jobs:
           fetch-depth: 0
           path: tft-tests
 
+
       - name: Create a test plan for each test playbook
         id: create_test_plans
         shell: bash
         run: |
-          test_playbooks=$(find ${{ github.action_repository }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
+          test_playbooks=$(find ${{ github.event.repository.name }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
           for test_playbook in $test_playbooks; do
             test_playbook_name="${test_playbook%.*}"
-            test_plan_path=tft-tests/plans/${{ github.action_repository }}
+            test_plan_path=tft-tests/plans/${{ github.event.repository.name }}
             test_plan="$test_plan_path"/"$test_playbook_name".fmf
             mkdir "$test_plan_path"
             cp tft-tests/plans/general.fmf "$test_plan"
