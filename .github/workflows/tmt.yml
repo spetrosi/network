@@ -5,8 +5,6 @@ on:
       - created
 permissions:
   contents: read
-  # This is required for the ability to create Issue comment
-  pull-requests: write
   # This is required for the ability to create/update the Pull request status
   statuses: write
 # The concurrency key is used to prevent multiple workflows from running at the same time
@@ -154,10 +152,11 @@ jobs:
           tf_scope: private
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: true
-          create_issue_comment: true
 
   remove-test-branch:
-    needs: prep-test-playbooks
+    needs:
+      - prep-test-playbooks
+      - tests
     name: Remove test branch always
     if: always()
     runs-on: ubuntu-latest
