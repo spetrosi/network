@@ -3,10 +3,6 @@ on:
   issue_comment:
     types:
       - created
-
-permissions:
-  contents: read
-
 # The concurrency key is used to prevent multiple workflows from running at the same time
 concurrency:
   group: my-concurrency-group
@@ -14,6 +10,7 @@ concurrency:
 
 jobs:
   prep-test-playbooks:
+    name: Prepare test plans
     runs-on: ubuntu-latest
     outputs:
       branch: ${{ steps.create_test_plans.outputs.branch }}
@@ -22,45 +19,44 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: "refs/pull/${{ github.event.issue.number }}/head"
-          fetch-depth: 0
           path: ${{ github.action_repository }}
 
-      - name: Checkout tests repo
-        uses: action/checkout@v4
-        with:
-          # repository: linux-system-roles/tft-tests
-          # ref: main
-          repository: spetrosi/tft-tests
-          ref: add-tmt-tests
-          fetch-depth: 0
-          path: tft-tests
+      # - name: Checkout tests repo
+      #   uses: action/checkout@v4
+      #   with:
+      #     # repository: linux-system-roles/tft-tests
+      #     # ref: main
+      #     repository: spetrosi/tft-tests
+      #     ref: add-tmt-tests
+      #     fetch-depth: 0
+      #     path: tft-tests
 
-      # https://docs.testing-farm.io/Testing%20Farm/0.1/test-request.html#parallelization
-      # 12 for Public ranch
-      # 5 for Red Hat ranch
-      - name: Create a test plan for each test playbook
-        id: create_test_plans
-        shell: bash
-        run: |
-          test_playbooks=$(find ${{ github.action_repository }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
-          for test_playbook in $test_playbooks; do
-            test_playbook_name="${test_playbook%.*}"
-            test_plan_path=tft-tests/plans/${{ github.action_repository }}
-            test_plan="$test_plan_path"/"$test_playbook_name".fmf
-            mkdir "$test_plan_path"
-            cp tft-tests/plans/general.fmf "$test_plan"
-            sed -i "s|# SYSTEM_ROLES_EXCLUDE_TESTS: .*|SYSTEM_ROLES_EXCLUDE_TESTS: $test_playbook|" "$test_plan"
-          done
-          echo "branch=$RANDOM">> $GITHUB_OUTPUT
+      # # https://docs.testing-farm.io/Testing%20Farm/0.1/test-request.html#parallelization
+      # # 12 for Public ranch
+      # # 5 for Red Hat ranch
+      # - name: Create a test plan for each test playbook
+      #   id: create_test_plans
+      #   shell: bash
+      #   run: |
+      #     test_playbooks=$(find ${{ github.action_repository }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
+      #     for test_playbook in $test_playbooks; do
+      #       test_playbook_name="${test_playbook%.*}"
+      #       test_plan_path=tft-tests/plans/${{ github.action_repository }}
+      #       test_plan="$test_plan_path"/"$test_playbook_name".fmf
+      #       mkdir "$test_plan_path"
+      #       cp tft-tests/plans/general.fmf "$test_plan"
+      #       sed -i "s|# SYSTEM_ROLES_EXCLUDE_TESTS: .*|SYSTEM_ROLES_EXCLUDE_TESTS: $test_playbook|" "$test_plan"
+      #     done
+      #     echo "branch=$RANDOM">> $GITHUB_OUTPUT
 
-      - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          message: Test branch for running workflow on ${{ github.action_repository }} PR#${{ github.event.issue.number }}
-          branch:  ${{ steps.create_test_plans.outputs.branch }}
-          directory: tft-tests
-          repository: spetrosi/tft-tests
+      # - name: Commit & Push changes
+      #   uses: actions-js/push@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     message: Test branch for running workflow on ${{ github.action_repository }} PR#${{ github.event.issue.number }}
+      #     branch:  ${{ steps.create_test_plans.outputs.branch }}
+      #     directory: tft-tests
+      #     repository: spetrosi/tft-tests
       # - name: Get test playbooks
       #   id: test_playbooks
       #   shell: bash
