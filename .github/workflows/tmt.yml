@@ -39,15 +39,16 @@ jobs:
         shell: bash
         run: |
           test_playbooks=$(find ${{ github.event.repository.name }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
+          test_plan_path=tft-tests/plans/${{ github.event.repository.name }}
           mkdir -p "$test_plan_path"
           for test_playbook in $test_playbooks; do
             test_playbook_name="${test_playbook%.*}"
-            test_plan_path=tft-tests/plans/${{ github.event.repository.name }}
             test_plan="$test_plan_path"/"$test_playbook_name".fmf
             cp tft-tests/plans/general.fmf "$test_plan"
             sed -i "s|# SYSTEM_ROLES_EXCLUDE_TESTS: .*|SYSTEM_ROLES_EXCLUDE_TESTS: $test_playbook|" "$test_plan"
           done
           echo "branch=$RANDOM">> $GITHUB_OUTPUT
+
 
       # - name: Commit & Push changes
       #   uses: actions-js/push@master
