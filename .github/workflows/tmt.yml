@@ -34,17 +34,16 @@ jobs:
           fetch-depth: 0
           path: tft-tests
 
-
       - name: Create a test plan for each test playbook
         id: create_test_plans
         shell: bash
         run: |
           test_playbooks=$(find ${{ github.event.repository.name }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
+          mkdir -p "$test_plan_path"
           for test_playbook in $test_playbooks; do
             test_playbook_name="${test_playbook%.*}"
             test_plan_path=tft-tests/plans/${{ github.event.repository.name }}
             test_plan="$test_plan_path"/"$test_playbook_name".fmf
-            mkdir "$test_plan_path"
             cp tft-tests/plans/general.fmf "$test_plan"
             sed -i "s|# SYSTEM_ROLES_EXCLUDE_TESTS: .*|SYSTEM_ROLES_EXCLUDE_TESTS: $test_playbook|" "$test_plan"
           done
