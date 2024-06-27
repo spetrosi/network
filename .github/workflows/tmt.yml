@@ -7,7 +7,6 @@ on:
 concurrency:
   group: my-concurrency-group
   cancel-in-progress: true
-
 jobs:
   prep-test-playbooks:
     name: Prepare test plans
@@ -21,15 +20,15 @@ jobs:
           ref: "refs/pull/${{ github.event.issue.number }}/head"
           path: ${{ github.action_repository }}
 
-      # - name: Checkout tests repo
-      #   uses: action/checkout@v4
-      #   with:
-      #     # repository: linux-system-roles/tft-tests
-      #     # ref: main
-      #     repository: spetrosi/tft-tests
-      #     ref: add-tmt-tests
-      #     fetch-depth: 0
-      #     path: tft-tests
+      - name: Checkout tests repo
+        uses: action/checkout@v4
+        with:
+          # repository: linux-system-roles/tft-tests
+          # ref: main
+          repository: spetrosi/tft-tests
+          ref: add-tmt-tests
+          fetch-depth: 0
+          path: tft-tests
 
       # # https://docs.testing-farm.io/Testing%20Farm/0.1/test-request.html#parallelization
       # # 12 for Public ranch
