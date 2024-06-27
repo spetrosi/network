@@ -5,6 +5,10 @@ on:
       - created
 permissions:
   contents: read
+  # This is required for the ability to create Issue comment
+  pull-requests: write
+  # This is required for the ability to create/update the Pull request status
+  statuses: write
 # The concurrency key is used to prevent multiple workflows from running at the same time
 concurrency:
   group: my-concurrency-group
@@ -28,7 +32,7 @@ jobs:
           ref: "refs/pull/${{ github.event.issue.number }}/head"
           path: ${{ github.event.repository.name }}
 
-      - name: Checkout tests repo
+      - name: Checkout tft-tests repo
         uses: actions/checkout@v4
         with:
           # repository: linux-system-roles/tft-tests
@@ -40,7 +44,7 @@ jobs:
           token: ${{ secrets.SYSTEMROLLER_TOKEN}}
           persist-credentials: true
 
-      - name: Create a test plan for each test playbook
+      - name: Create test plans for each test playbook
         id: create_test_plans
         shell: bash
         run: |
@@ -158,6 +162,16 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout tft-tests repo branch ${{ needs.prep-test-playbooks.outputs.branch }}
+        uses: actions/checkout@v4
+        with:
+          # repository: linux-system-roles/tft-tests
+          # ref: main
+          repository: spetrosi/tft-tests
+          ref: ${{ needs.prep-test-playbooks.outputs.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.SYSTEMROLLER_TOKEN}}
+          persist-credentials: true
+
       - name: Remove test branch
-        working-directory: tft-tests
         run: git push origin --delete ${{ needs.prep-test-playbooks.outputs.branch }}
