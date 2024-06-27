@@ -37,6 +37,8 @@ jobs:
           ref: add-tmt-tests
           fetch-depth: 0
           path: tft-tests
+          token: ${{ secrets.SYSTEMROLLER_TOKEN}}
+          persist-credentials: true
 
       - name: Create a test plan for each test playbook
         id: create_test_plans
@@ -51,18 +53,18 @@ jobs:
             cp tft-tests/plans/general.fmf "$test_plan"
             sed -i "s|# SYSTEM_ROLES_EXCLUDE_TESTS: .*|SYSTEM_ROLES_EXCLUDE_TESTS: $test_playbook|" "$test_plan"
           done
-          echo "branch=$RANDOM">> $GITHUB_OUTPUT
+          echo "branch=${{ github.event.repository.name }}-${{ github.event.issue.number }}-$RANDOM">> $GITHUB_OUTPUT
 
-      - name: Commit & Push changes
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          message: Test branch for running workflow on ${{ github.event.repository.name }} PR#${{ github.event.issue.number }}
-          # repository: linux-system-roles/tft-tests
-          repository: spetrosi/tft-tests
-          branch:  ${{ steps.create_test_plans.outputs.branch }}
-          directory: tft-tests
-
+      - name: Commit & push changes
+        working-directory: tft-tests
+        shell: bash
+        run: |
+          git checkout -b ${{ steps.create_test_plans.outputs.branch }}
+          git add -A
+          git config --global user.name "systemroller [bot]"
+          git config --global user.email "${{ secrets.SYSTEMROLLER_EMAIL }}"
+          git commit -m "Upload plans for https://github.com/spetrosi/${{ github.event.repository.name }}/pull/${{ github.event.issue.number }}"
+          git push
 
       # - name: Get test playbooks
       #   id: test_playbooks
