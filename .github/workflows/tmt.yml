@@ -12,166 +12,77 @@ concurrency:
   group: my-concurrency-group
   cancel-in-progress: true
 jobs:
-  prep-test-playbooks:
-    name: Prepare test plans
+  get_platforms:
+    name: Get supported platforms from meta/main.yml
     runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.create_test_plans.outputs.branch }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: "refs/pull/${{ github.event.issue.number }}/head"
+
+      - name: Install yq
+        run: sudo apt install -y git
+
+      - name: Check if role supports platform ${{ matrix.platform }}
+        id: supported_platforms
+        run: |
+          supported_platforms=""
+          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi fedora; then
+            supported_platforms+=" Fedora-39"
+            supported_platforms+=" Fedora-40"
+          fi
+          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi el7; then
+            supported_platforms+=" CentOS-7-latest"
+          fi
+          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi el8; then
+            supported_platforms+=" CentOS-Stream-8"
+          fi
+          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi el9; then
+            supported_platforms+=" CentOS-Stream-9"
+          fi
+          echo "supported_platforms=$supported_platforms" >> $GITHUB_OUTPUT
+
+  testing-farm:
+    name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
+    needs: get_platforms
     # Let's schedule tests only on user request. NOT automatically.
     # Only repository owner or member can schedule tests
     if: |
       github.event.issue.pull_request
       && (contains(github.event.comment.body, '[test]') || contains(github.event.comment.body, '[test-all]'))
       && contains(fromJson('["OWNER", "MEMBER"]'), github.event.comment.author_association)
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: "refs/pull/${{ github.event.issue.number }}/head"
-          path: ${{ github.event.repository.name }}
-
-      - name: Checkout tft-tests repo
-        uses: actions/checkout@v4
-        with:
-          # repository: linux-system-roles/tft-tests
-          # ref: main
-          repository: spetrosi/tft-tests
-          ref: add-tmt-tests
-          fetch-depth: 0
-          path: tft-tests
-          token: ${{ secrets.SYSTEMROLLER_TOKEN}}
-          persist-credentials: true
-
-
-      - name: Create test plans for each test playbook
-        id: create_test_plans
-        shell: bash
-        run: |
-          test_playbooks=$(find ${{ github.event.repository.name }}/tests -maxdepth 1 -type f -name "tests_*.yml" -printf '%f\n')
-          test_plan_path=tft-tests/plans/${{ github.event.repository.name }}
-          mkdir -p "$test_plan_path"
-          for test_playbook in $test_playbooks; do
-            test_playbook_name="${test_playbook%.*}"
-            test_plan="$test_plan_path"/"$test_playbook_name".fmf
-            cp tft-tests/plans/general.fmf "$test_plan"
-            sed -i "s|# SYSTEM_ROLES_EXCLUDE_TESTS: .*|SYSTEM_ROLES_EXCLUDE_TESTS: $test_playbook|" "$test_plan"
-          done
-          echo "branch=${{ github.event.repository.name }}-${{ github.event.issue.number }}-$RANDOM">> $GITHUB_OUTPUT
-
-      - name: Commit & push changes
-        working-directory: tft-tests
-        shell: bash
-        run: |
-          git checkout -b ${{ steps.create_test_plans.outputs.branch }}
-          git add -A
-          git config --global user.name "systemroller [bot]"
-          git config --global user.email "${{ secrets.SYSTEMROLLER_EMAIL }}"
-          git commit -m "Upload plans for https://github.com/spetrosi/${{ github.event.repository.name }}/pull/${{ github.event.issue.number }}"
-          git push --set-upstream origin ${{ steps.create_test_plans.outputs.branch }}
-
-      # - name: Get test playbooks
-      #   id: test_playbooks
-      #   shell: bash
-      #   run: |
-      #     declare -a test_playbooks
-      #     pushd tests || exit
-      #     test_playbooks=(tests_*.yml)
-      #     len=$(( ${#test_playbooks[*]} ))
-      #     # GH matrix expansion limit as per https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
-      #     gh_expansion_limit=256
-      #     # Our current matrix has 5 OSes, of which CS8 has 2 runs, for ansible-core and ansible-engine, which makes up to 6
-      #     current_lsr_matrix_len=6
-      #     # Maximim length of the array that we can submit to GH
-      #     max_len=$((gh_expansion_limit/current_lsr_matrix_len))
-      #     # The formula that I got for calculating the most efficient way of splitting a long array to fin the limit
-      #     max_len_index=$((2 * max_len - len))
-      #     # Group first $max_len_index elements of the test_playbooks array into elements by two so that array length = 42
-      #     if (( "$len" > "$max_len" )); then
-      #       declare -a test_playbooks_sliced
-      #       for (( i==0; i < "$max_len_index"; i++ )); do
-      #         # Get two first elements from test_playbooks to test_playbooks_sliced
-      #         string=$(IFS=$'\n'; echo "${test_playbooks[@]:0:2}")
-      #         test_playbooks_sliced+=("$string")
-      #         # Remove two first elements from test_playbooks
-      #         test_playbooks=("${test_playbooks[@]:2}")
-      #       done
-      #       test_playbooks=("${test_playbooks_sliced[@]}" "${test_playbooks[@]}" )
-      #       len=$(( ${#test_playbooks[*]} ))
-      #     fi
-      #     last=${test_playbooks[$len - 1]}
-      #     first=${test_playbooks[0]}
-      #     for TBP in "${test_playbooks[@]}"; do
-      #       if [[ $TBP == "$first" ]]; then
-      #         test_playbooks_yaml_list="[\"$TBP\","
-      #       elif [[ $TBP == "$last" ]]; then
-      #         test_playbooks_yaml_list="$test_playbooks_yaml_list \"$TBP\"]"
-      #         break
-      #       else
-      #         test_playbooks_yaml_list="$test_playbooks_yaml_list \"$TBP\","
-      #       fi
-      #     done
-      #     echo "test_playbooks=$test_playbooks_yaml_list" >> "$GITHUB_OUTPUT"
-      #     echo "test_playbooks=$test_playbooks_yaml_list"
-      #     echo "Array length: $(( ${#test_playbooks[*]} ))"
-      #     popd || exit
-  tests:
-    # needs: prep-test-playbooks
-    needs: prep-test-playbooks
-    name: ${{ matrix.os_test }}/ansible-${{ matrix.ansible_version }}
+      && contains(${{ needs.get_platforms.outputs.supported_platforms }}, ${{ matrix.platform }}) 
     strategy:
       fail-fast: false
       matrix:
-        # test_playbook: ${{ fromJSON(needs.prep-test-playbooks.outputs.test_playbooks) }}
         include:
-          - os_test: Fedora-39
+          - platform: Fedora-39
             ansible_version: 2.17
-          - os_test: Fedora-40
+          - platform: Fedora-40
             ansible_version: 2.17
-          - os_test: CentOS-7-latest
+          - platform: CentOS-7-latest
             ansible_version: 2.9
-          - os_test: CentOS-Stream-8
+          - platform: CentOS-Stream-8
             ansible_version: 2.9
-          - os_test: CentOS-Stream-8
+          - platform: CentOS-Stream-8
             ansible_version: 2.17
-          - os_test: CentOS-Stream-9
+          - platform: CentOS-Stream-9
             ansible_version: 2.17
     runs-on: ubuntu-latest
     steps:
       - uses: sclorg/testing-farm-as-github-action@v2
         with:
           git_url: https://github.com/spetrosi/tft-tests
-          # git_ref: add-tmt-tests
-          git_ref: ${{ needs.prep-test-playbooks.outputs.branch }}
-          tmt_path: plans/${{ github.event.repository.name }}
+          git_ref: add-tmt-tests
+          tmt_path: plans/
           pipeline_settings: '{ "type": "tmt-multihost" }'
           # variables: "ANSIBLE_VER=${{ matrix.ansible_version }};REPO_NAME=${{ github.event.repository.name }};PR_NUM=${{ github.event.issue.number }}"
           variables: "ANSIBLE_VER=${{ matrix.ansible_version }};REPO_NAME=${{ github.event.repository.name }}"
-          pull_request_status_name: ${{ matrix.os_test }}/ansible-${{ matrix.ansible_version }}
-          compose: ${{ matrix.os_test }}
+          pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
+          compose: ${{ matrix.platform }}
           # Using private scope and RH ranch because multihost is not supported in public so far.
           # https://github.com/teemtee/tmt/issues/2620
           tf_scope: private
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: true
-
-  remove-test-branch:
-    needs:
-      - prep-test-playbooks
-      - tests
-    name: Remove test branch always
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout tft-tests repo branch ${{ needs.prep-test-playbooks.outputs.branch }}
-        uses: actions/checkout@v4
-        with:
-          # repository: linux-system-roles/tft-tests
-          # ref: main
-          repository: spetrosi/tft-tests
-          ref: ${{ needs.prep-test-playbooks.outputs.branch }}
-          fetch-depth: 0
-          token: ${{ secrets.SYSTEMROLLER_TOKEN}}
-          persist-credentials: true
-
-      - name: Remove test branch
-        run: git push origin --delete ${{ needs.prep-test-playbooks.outputs.branch }}
