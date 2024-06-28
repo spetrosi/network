@@ -34,20 +34,22 @@ jobs:
         id: supported_platforms
         run: |
           supported_platforms=""
-          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi fedora; then
+          meta_main=meta/main.yml
+          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi fedora; then
             supported_platforms+=" Fedora-39"
             supported_platforms+=" Fedora-40"
           fi
-          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi el7; then
+          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi el7; then
             supported_platforms+=" CentOS-7-latest"
           fi
-          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi el8; then
+          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi el8; then
             supported_platforms+=" CentOS-Stream-8"
           fi
-          if yq '.galaxy_info.galaxy_tags[]' main.yml | grep -qi el9; then
+          if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi el9; then
             supported_platforms+=" CentOS-Stream-9"
           fi
           echo "supported_platforms=$supported_platforms" >> $GITHUB_OUTPUT
+
 
   testing-farm:
     name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
