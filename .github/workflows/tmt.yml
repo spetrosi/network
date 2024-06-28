@@ -11,10 +11,15 @@ permissions:
 concurrency:
   group: my-concurrency-group
   cancel-in-progress: true
-
 jobs:
   get_platforms:
     name: Get supported platforms from meta/main.yml
+    # Let's schedule tests only on user request. NOT automatically.
+    # Only repository owner or member can schedule tests
+    if: |
+      github.event.issue.pull_request
+      && (contains(github.event.comment.body, '[test]') || contains(github.event.comment.body, '[test-all]'))
+      && contains(fromJson('["OWNER", "MEMBER"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -25,7 +30,7 @@ jobs:
       - name: Install yq
         run: sudo apt install -y git
 
-      - name: Check if role supports platform ${{ matrix.platform }}
+      - name: Get supported platforms
         id: supported_platforms
         run: |
           supported_platforms=""
@@ -47,13 +52,6 @@ jobs:
   testing-farm:
     name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
     needs: get_platforms
-    # Let's schedule tests only on user request. NOT automatically.
-    # Only repository owner or member can schedule tests
-    if: |
-      github.event.issue.pull_request
-      && (contains(github.event.comment.body, '[test]') || contains(github.event.comment.body, '[test-all]'))
-      && contains(fromJson('["OWNER", "MEMBER"]'), github.event.comment.author_association)
-      && contains(${{ needs.get_platforms.outputs.supported_platforms }}, ${{ matrix.platform }}) 
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: sclorg/testing-farm-as-github-action@v2
+        if: contains(needs.get_platforms.outputs.supported_platforms, matrix.platform)
         with:
           git_url: https://github.com/spetrosi/tft-tests
           git_ref: add-tmt-tests
