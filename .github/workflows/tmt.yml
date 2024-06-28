@@ -11,6 +11,7 @@ permissions:
 concurrency:
   group: my-concurrency-group
   cancel-in-progress: true
+
 jobs:
   get_platforms:
     name: Get supported platforms from meta/main.yml
