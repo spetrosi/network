@@ -69,8 +69,10 @@ jobs:
           - platform: CentOS-Stream-8
             ansible_version: 2.9
           - platform: CentOS-Stream-8
-            ansible_version: 2.17
+            ansible_version: 2.16
           - platform: CentOS-Stream-9
+            ansible_version: 2.17
+          - platform: CentOS-Stream-10
             ansible_version: 2.17
     runs-on: ubuntu-latest
     steps:
