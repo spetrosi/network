@@ -21,6 +21,8 @@ jobs:
       && (contains(github.event.comment.body, '[test]') || contains(github.event.comment.body, '[test-all]'))
       && contains(fromJson('["OWNER", "MEMBER"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
+    outputs:
+      supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -48,8 +50,8 @@ jobs:
           if yq '.galaxy_info.galaxy_tags[]' "$meta_main" | grep -qi el9; then
             supported_platforms+=" CentOS-Stream-9"
           fi
+          echo "$supported_platforms"
           echo "supported_platforms=$supported_platforms" >> $GITHUB_OUTPUT
-
 
   testing-farm:
     name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
