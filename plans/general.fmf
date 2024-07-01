@@ -22,7 +22,7 @@ prepare:
   - name: Use vault.centos.org repos (CS8 EOL workaround)
     how: shell
     script: |
-      if grep -q 'CentOS Stream release 8' /etc/redhat-release; then
+      if grep -q 'CentOS Stream release 8' /etc/redhat-release || grep -q 'CentOS Linux release 7.9'; then
         sed -i '/^mirror/d;s/#\(baseurl=http:\/\/\)mirror/\1vault/' /etc/yum.repos.d/*.repo
       fi
   - name: Enable epel on control node to install beakerlib
