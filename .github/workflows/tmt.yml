@@ -24,6 +24,12 @@ jobs:
     outputs:
       supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
     steps:
+      - name: Dump github context
+        run:   echo "$GITHUB_CONTEXT"
+        shell: bash
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
@@ -73,12 +79,14 @@ jobs:
             ansible_version: 2.17
           - platform: CentOS-Stream-10
             ansible_version: 2.17
+
     runs-on: ubuntu-latest
     steps:
       - uses: sclorg/testing-farm-as-github-action@v2
         if: contains(needs.get_platforms.outputs.supported_platforms, matrix.platform)
         with:
           # git_url: ${{ github.event.repository.url }}"
+          git_url: ${{ github.server_url }}/${{ github.repository }}
           git_ref: ${{ github.ref }}
           # tmt_path: plans/
           pipeline_settings: '{ "type": "tmt-multihost" }'
