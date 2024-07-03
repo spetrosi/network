@@ -122,6 +122,7 @@ jobs:
           # variables: "ANSIBLE_VER=${{ matrix.ansible_version }};REPO_NAME=${{ github.event.repository.name }};PR_NUM=${{ github.event.issue.number }}"
           variables: "ANSIBLE_VER=${{ matrix.ansible_version }};\
             REPO_NAME=${{ github.event.repository.name }};\
+            GITHUB_ORG=spetrosi;\
             PR_NUM=${{ github.event.issue.number }};\
             ARTIFACTS_DIR=${{ env.ARTIFACTS_DIR }};\
             ARTIFACTS_URL=${{ env.ARTIFACTS_URL }};\
@@ -136,6 +137,7 @@ jobs:
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
 
+
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
         if: always()
@@ -145,5 +147,5 @@ jobs:
           sha: ${{ needs.prepare_vars.outputs.head_sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
-          description: ${{ env.ARTIFACTS_URL }}
+          targetUrl: ${{ env.ARTIFACTS_URL }}
           context: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
