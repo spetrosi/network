@@ -136,6 +136,7 @@ jobs:
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
 
+
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
         if: always()
