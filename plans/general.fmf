@@ -17,7 +17,6 @@ environment:
     PR_NUM: ""
 prepare:
   - name: Use vault.centos.org repos (CS 7, 8 EOL workaround)
-    how: shell
     script: |
       if grep -q 'CentOS Stream release 8' /etc/redhat-release || grep -q 'CentOS Linux release 7.9' /etc/redhat-release; then
         sed -i '/^mirror/d;s/#\(baseurl=http:\/\/\)mirror/\1vault/' /etc/yum.repos.d/*.repo
@@ -26,19 +25,13 @@ prepare:
     how: feature
     epel: enabled
     where: control_node
-  - name: Install beakerlib on control node for tests
-    how: install
-    package: beakerlib
-    where: control_node
   - name: Install python on managed node when running CS8 with ansible!=2.9
-    how: shell
     script: |
       if [ "$ANSIBLE_VER" != "2.9" ] && grep -q 'CentOS Stream release 8' /etc/redhat-release; then
         dnf install -y python"$PYTHON_VERSION"
       fi
     where: managed_node
   - name: Distribute SSH keys when provisioned with how=virtual
-    how: shell
     script: |
       if [ -f ${TMT_TREE%/*}/provision/control_node/id_ecdsa.pub ]; then
         cat ${TMT_TREE%/*}/provision/control_node/id_ecdsa.pub >> ~/.ssh/authorized_keys
@@ -47,11 +40,9 @@ prepare:
 discover:
   - name: Run test playbooks from control_node
     how: fmf
-    # url: https://github.com/linux-system-roles/tft-tests
-    # ref: main
     url: https://github.com/spetrosi/tft-tests
-    ref: add-tmt-tests
-    # path: /tests/general
+    ref: upload-logs-to-fedora
     where: control_node
+    filter: tag:test_playbooks
 execute:
     how: tmt
