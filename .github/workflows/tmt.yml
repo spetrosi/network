@@ -125,9 +125,9 @@ jobs:
             PR_NUM=${{ github.event.issue.number }};\
             ARTIFACTS_DIR=${{ env.ARTIFACTS_DIR }};\
             ARTIFACTS_URL=${{ env.ARTIFACTS_URL }};\
-            LINUXSYSTEMROLES_USER: ${{ secrets.LINUXSYSTEMROLES_USER }};\
-            LINUXSYSTEMROLES_DOMAIN: ${{ secrets.LINUXSYSTEMROLES_DOMAIN }};\
-            LINUXSYSTEMROLES_SSH_KEY: ${{ secrets.LINUXSYSTEMROLES_SSH_KEY }}"
+            LINUXSYSTEMROLES_USER=${{ secrets.LINUXSYSTEMROLES_USER }};\
+            LINUXSYSTEMROLES_DOMAIN=${{ secrets.LINUXSYSTEMROLES_DOMAIN }};\
+            LINUXSYSTEMROLES_SSH_KEY=${{ secrets.LINUXSYSTEMROLES_SSH_KEY }}"
           compose: ${{ matrix.platform }}
           # Using private scope and RH ranch because multihost is not supported in public so far.
           # https://github.com/teemtee/tmt/issues/2620
@@ -135,7 +135,6 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
-
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
