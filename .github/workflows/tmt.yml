@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
-      head_sha: ${{ steps.get_head_sha.outputs.head_sha }}
+      head_sha: ${{ steps.head_sha.outputs.head_sha }}
       datetime: ${{ steps.datetime.outputs.datetime }}
     steps:
       - name: Dump github context
