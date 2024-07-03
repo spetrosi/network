@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
-      head_sha: ${{ steps.get_head_sha.outputs.head_sha }}
+      head_sha: ${{ steps.head_sha.outputs.head_sha }}
       datetime: ${{ steps.datetime.outputs.datetime }}
     steps:
       - name: Dump github context
@@ -135,7 +135,6 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
-
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
