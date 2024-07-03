@@ -39,7 +39,7 @@ jobs:
         id: get_branch
         run: |
           branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
-          echo "branch=$branch > $GITHUB_OUTPUT
+          echo "branch=$branch > $GITHUB_OUTPUT"
         env:
           REPO: ${{ github.repository }}
           PR_NO: ${{ github.event.issue.number }}
@@ -49,7 +49,7 @@ jobs:
         id: datetime
         run: |
           printf -v datetime '%(%Y%m%d-%H%M%S)T' -1
-          echo "datetime=$datetime > $GITHUB_OUTPUT
+          echo "datetime=$datetime > $GITHUB_OUTPUT"
 
       - name: Install yq
         run: sudo apt install -y git
