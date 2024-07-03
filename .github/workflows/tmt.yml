@@ -39,7 +39,7 @@ jobs:
         id: head_sha
         run: |
           head_sha=$(gh api "repos/$REPO/pulls/$PR_NO" --jq '.head.sha')
-          echo "head_sha=$head_sha > $GITHUB_OUTPUT"
+          echo "head_sha=$head_sha >> $GITHUB_OUTPUT"
         env:
           REPO: ${{ github.repository }}
           PR_NO: ${{ github.event.issue.number }}
@@ -49,7 +49,7 @@ jobs:
         id: datetime
         run: |
           printf -v datetime '%(%Y%m%d-%H%M%S)T' -1
-          echo "datetime=$datetime > $GITHUB_OUTPUT"
+          echo "datetime=$datetime >> $GITHUB_OUTPUT"
 
       - name: Install yq
         run: sudo apt install -y git
@@ -135,7 +135,6 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
-
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
