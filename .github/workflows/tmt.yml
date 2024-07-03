@@ -24,7 +24,7 @@ jobs:
     outputs:
       supported_platforms: ${{ steps.supported_platforms.outputs.supported_platforms }}
       head_branch: ${{ steps.get_branch.outputs.branch }}
-      date: ${{ steps.datetime.outputs.datetime }}
+      datetime: ${{ steps.datetime.outputs.datetime }}
     steps:
       - name: Dump github context
         run:   echo "$GITHUB_CONTEXT"
@@ -99,8 +99,6 @@ jobs:
     env:
       ARTIFACTS_DIR_NAME: tf-${{ github.event.repository.name }}_${{ github.event.issue.number }}-${{ needs.prepare_vars.outputs.datetime }}/artifacts
       ARTIFACT_TARGET_DIR: /srv/pub/alt/linuxsystemroles/logs
-      ARTIFACTS_DIR: ${{ env.ARTIFACT_TARGET_DIR }}/${{ env.ARTIFACTS_DIR_NAME }}
-      ARTIFACTS_URL: https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs/${{ env.ARTIFACTS_DIR_NAME }}
     steps:
       - name: Set commit status as pending
         uses: myrotvorets/set-commit-status-action@master
@@ -111,6 +109,9 @@ jobs:
 
       - uses: sclorg/testing-farm-as-github-action@v2
         if: contains(needs.prepare_vars.outputs.supported_platforms, matrix.platform)
+        env:
+          ARTIFACTS_DIR: ${{ env.ARTIFACT_TARGET_DIR }}/${{ env.ARTIFACTS_DIR_NAME }}
+          ARTIFACTS_URL: https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs/${{ env.ARTIFACTS_DIR_NAME }}
         with:
           # git_url: ${{ github.event.repository.url }}"
           git_url: ${{ github.server_url }}/${{ github.repository }}
@@ -123,6 +124,7 @@ jobs:
             REPO_NAME=${{ github.event.repository.name }};
             PR_NUM=${{ github.event.issue.number }};
             ARTIFACTS_DIR=${{ env.ARTIFACTS_DIR }};
+            ARTIFACTS_URL=${{ env.ARTIFACTS_URL }};
             LINUXSYSTEMROLES_USER: ${{ secrets.LINUXSYSTEMROLES_USER }};
             LINUXSYSTEMROLES_DOMAIN: ${{ secrets.LINUXSYSTEMROLES_DOMAIN }};
             LINUXSYSTEMROLES_SSH_KEY: ${{ secrets.LINUXSYSTEMROLES_SSH_KEY }}
@@ -134,9 +136,12 @@ jobs:
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
 
+
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
         if: always()
+        env:
+          ARTIFACTS_URL: https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs/${{ env.ARTIFACTS_DIR_NAME }}
         with:
           sha: ${{ needs.prepare_vars.outputs.head_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
