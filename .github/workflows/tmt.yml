@@ -127,8 +127,9 @@ jobs:
             GITHUB_ORG=spetrosi;\
             PR_NUM=${{ github.event.issue.number }};\
             ARTIFACTS_DIR=${{ env.ARTIFACTS_DIR }};\
-            ARTIFACTS_URL=${{ env.ARTIFACTS_URL }};\
-            LINUXSYSTEMROLES_USER=${{ secrets.LINUXSYSTEMROLES_USER }};\
+            ARTIFACTS_URL=${{ env.ARTIFACTS_URL }}"
+          # Note that LINUXSYSTEMROLES_SSH_KEY must be single-line, TF doesn't read multi-line variables fine.
+          secrets: "LINUXSYSTEMROLES_USER=${{ secrets.LINUXSYSTEMROLES_USER }};\
             LINUXSYSTEMROLES_DOMAIN=${{ secrets.LINUXSYSTEMROLES_DOMAIN }};\
             LINUXSYSTEMROLES_SSH_KEY=${{ secrets.LINUXSYSTEMROLES_SSH_KEY }}"
           compose: ${{ matrix.platform }}
@@ -138,6 +139,7 @@ jobs:
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
+
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
