@@ -133,13 +133,13 @@ jobs:
             LINUXSYSTEMROLES_DOMAIN=${{ secrets.LINUXSYSTEMROLES_DOMAIN }};\
             LINUXSYSTEMROLES_SSH_KEY=${{ secrets.LINUXSYSTEMROLES_SSH_KEY }}"
           compose: ${{ matrix.platform }}
-          # Using private scope and RH ranch because multihost is not supported in public so far.
-          # https://github.com/teemtee/tmt/issues/2620
+          # There are two blockers for using public ranch:
+          # 1. multihost is not supported in public
+          # 2. Security issue that leaks long secrets - Jira TFT-2698
           tf_scope: private
           api_key: ${{ secrets.TF_API_KEY_RH }}
           update_pull_request_status: false
           # pull_request_status_name: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
-
 
       - name: Set final commit status
         uses: myrotvorets/set-commit-status-action@master
@@ -148,7 +148,6 @@ jobs:
           ARTIFACTS_URL: https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs/${{ env.ARTIFACTS_DIR_NAME }}
         with:
           sha: ${{ needs.prepare_vars.outputs.head_sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
           targetUrl: ${{ env.ARTIFACTS_URL }}
           context: ${{ matrix.platform }}/ansible-${{ matrix.ansible_version }}
