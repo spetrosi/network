@@ -19,12 +19,12 @@ environment:
 prepare:
   - name: Use vault.centos.org repos (CS 7, 8 EOL workaround)
     script: |
-      if grep -q 'CentOS Stream release 8' /etc/redhat-release || grep -q 'CentOS Linux release 7.9' /etc/redhat-release; then
+      if grep -q -e 'CentOS Stream release 8' -e 'CentOS Linux release 7.9' /etc/redhat-release; then
         sed -i '/^mirror/d;s/#\(baseurl=http:\/\/\)mirror/\1vault/' /etc/yum.repos.d/*.repo
       fi
-  - name: Enable epel to install beakerlib on all platforms except CS10, there it's not available and not needed
+  - name: Enable epel to install beakerlib on all platforms except CS10 and Fedora, there it's not available and not needed
     script: |
-      if ! grep -q 'CentOS Stream release 10' /etc/redhat-release; then
+      if ! grep -q -e 'CentOS Stream release 10' /etc/redhat-release -e 'Fedora release'; then
         yum install epel-release -y
       fi
     where: control_node
@@ -43,8 +43,8 @@ prepare:
 discover:
   - name: Run test playbooks from control_node
     how: fmf
-    url: https://github.com/spetrosi/tft-tests
-    ref: upload-logs-to-fedora
+    url: https://github.com/linux-system-roles/tft-tests
+    ref: main
     where: control_node
     filter: tag:test_playbooks
 execute:

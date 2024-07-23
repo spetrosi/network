@@ -134,7 +134,7 @@ jobs:
             LINUXSYSTEMROLES_SSH_KEY=${{ secrets.LINUXSYSTEMROLES_SSH_KEY }}"
           compose: ${{ matrix.platform }}
           # There are two blockers for using public ranch:
-          # 1. multihost is not supported in public
+          # 1. multihost is not supported in public https://github.com/teemtee/tmt/issues/2620
           # 2. Security issue that leaks long secrets - Jira TFT-2698
           tf_scope: private
           api_key: ${{ secrets.TF_API_KEY_RH }}
