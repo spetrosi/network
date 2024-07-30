@@ -2,10 +2,13 @@ name: Rerun failed testing farm tests
 on:
   issue_comment:
     types: [created]
-
 permissions:
   contents: read
-
+# The concurrency key is used to prevent multiple workflows from running at the same time
+concurrency:
+  # group name contains reponame-pr_num to allow simualteneous runs in different PRs
+  group: bad-testing-farm-${{ github.event.repository.name }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
 jobs:
   retest:
     # PR comments where a Member types "/retest" exactly
@@ -20,8 +23,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_NO: ${{ github.event.issue.number }}
         run: |
-          SHA_REF=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/commits" | jq -r '.[].sha' | tail -n 1)
-          RUN_ID=$(gh api "repos/$REPO/actions/workflows/ci-build.yaml/runs?per_page=1&event=pull_request&head_sha=$SHA_REF" | jq -r '.workflow_runs[] | .id')
+          head_sha=$(gh api "repos/$REPO/pulls/$PR_NO" --jq '.head.sha')
+          RUN_ID=$(gh api "repos/$REPO/actions/workflows/tft.yml/runs?per_page=1&event=pull_request&head_sha=$head_sha" | jq -r '.workflow_runs[] | .id')
           gh api --method POST repos/$REPO/actions/runs/$RUN_ID/rerun-failed-jobs
