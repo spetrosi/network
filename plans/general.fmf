@@ -31,14 +31,14 @@ prepare:
 discover:
   - name: Prepare managed node
     how: fmf
-    url: https://github.com/linux-system-roles/tft-tests
-    ref: main
+    url: https://github.com/spetrosi/tft-tests
+    ref: playbook-failed
     where: managed_node
     filter: tag:prep_managed_node
   - name: Run test playbooks from control_node
     how: fmf
-    url: https://github.com/linux-system-roles/tft-tests
-    ref: main
+    url: https://github.com/spetrosi/tft-tests
+    ref: playbook-failed
     where: control_node
     filter: tag:test_playbooks
 execute:
