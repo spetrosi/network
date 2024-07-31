@@ -107,8 +107,8 @@ jobs:
           printf -v DATETIME '%(%Y%m%d-%H%M%S)T' -1
           ARTIFACTS_DIR_NAME="tf_${{ github.event.repository.name }}-${{ github.event.issue.number }}_\
           ${{ matrix.platform }}-${{ matrix.ansible_version }}_$DATETIME/artifacts"
-          ARTIFACT_TARGET_DIR=/srv/pub/alt/linuxsystemroles/logs
-          ARTIFACT_DIR=$ARTIFACT_TARGET_DIR/$ARTIFACTS_DIR_NAME
+          ARTIFACTS_TARGET_DIR=/srv/pub/alt/linuxsystemroles/logs
+          ARTIFACTS_DIR=$ARTIFACTS_TARGET_DIR/$ARTIFACTS_DIR_NAME
           ARTIFACTS_URL=https://dl.fedoraproject.org/pub/alt/linuxsystemroles/logs$ARTIFACTS_DIR_NAME
           echo "DATETIME=$DATETIME" >> $GITHUB_OUTPUT
           echo "ARTIFACTS_DIR=$ARTIFACTS_DIR" >> $GITHUB_OUTPUT

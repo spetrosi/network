@@ -16,7 +16,6 @@ environment:
     SYSTEM_ROLES_ONLY_TESTS: "" # e.g. tests_default.yml
     PR_NUM: ""
     TEST_LOCAL_CHANGES: true
-    GITHUB_ORG: spetrosi
 prepare:
   - name: Use vault.centos.org repos (CS 7, 8 EOL workaround)
     script: |
@@ -31,14 +30,14 @@ prepare:
 discover:
   - name: Prepare managed node
     how: fmf
-    url: https://github.com/spetrosi/tft-tests
-    ref: playbook-failed
+    url: https://github.com/linux-system-roles/tft-tests
+    ref: main
     where: managed_node
     filter: tag:prep_managed_node
   - name: Run test playbooks from control_node
     how: fmf
-    url: https://github.com/spetrosi/tft-tests
-    ref: playbook-failed
+    url: https://github.com/linux-system-roles/tft-tests
+    ref: main
     where: control_node
     filter: tag:test_playbooks
 execute:
