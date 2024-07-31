@@ -16,6 +16,7 @@ environment:
     SYSTEM_ROLES_ONLY_TESTS: "" # e.g. tests_default.yml
     PR_NUM: ""
     TEST_LOCAL_CHANGES: true
+    GITHUB_ORG: spetrosi
 prepare:
   - name: Use vault.centos.org repos (CS 7, 8 EOL workaround)
     script: |
